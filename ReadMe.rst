@@ -6,7 +6,9 @@
 .. description: A PowerShell module to allow weakening or circumventing SSL validation on web queries.
 .. type: text
 
-This module includes commands for importing certificates from files, loading them from the web server response of an http url, importing them to the Windows certificate store (to be trusted), and temporarily trusting them for a single PowerShell session.  It also includes proxy function command wrappers for Invoke-WebRequest and Invoke-RestMethod to add an ``-Insecure`` switch which allows single queries to ignore invalid SSL certificates.
+This module includes commands for importing certificates from files, loading them from the web server response of an http url, importing them to the Windows certificate store (to be trusted), and temporarily trusting them for a single PowerShell session.  It also includes proxy function command wrappers for ``Invoke-WebRequest`` and ``Invoke-RestMethod`` to add an ``-Insecure`` switch which allows single queries to ignore invalid SSL certificates.
+
+**One caveat** is that the way that it works is based on implementing the ServerCertificateValidationCallback, and the *results of that callback are cached* by your system, so in testing I've found that if you allow a certain URL, that URL is going to be valid for several seconds until the cache expires, so if you make several repeated calls to the same URL, and only the first one is flagged ``-insecure``, they *may* all succeed. I can't remember what the documentation says about the timing or flushing the cache right now, but although it's obviously not a security issue, I am going to look for a way to flush that if it's possible.
 
 Some Background
 ===============
