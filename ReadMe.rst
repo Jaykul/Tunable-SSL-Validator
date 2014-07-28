@@ -1,10 +1,12 @@
 .. title: Validating Self-Signed Certificates From .Net and PowerShell
 .. slug: validating-self-signed-certificates-properly-from-powershell
-.. date: 2014-07-25 22:31:03 UTC-04:00
+.. date: 2014-07-28 01:30:03 UTC-04:00
 .. tags: PowerShell, SSL, REST, WebRequest
 .. link: 
 .. description: A PowerShell module to allow weakening or circumventing SSL validation on web queries.
 .. type: text
+
+This module includes commands for importing certificates from files, loading them from the web server response of an http url, importing them to the Windows certificate store (to be trusted), and temporarily trusting them for a single PowerShell session.  It also includes proxy function command wrappers for Invoke-WebRequest and Invoke-RestMethod to add an ``-Insecure`` switch which allows single queries to ignore invalid SSL certificates.
 
 Some Background
 ===============
@@ -59,25 +61,20 @@ Let's look at the callback and see the information we have to work with::
 
    bool TunableValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
 
-# The sender is usually going to be the WebRequest that was calling an https domain that failed validation.  
-# The certificate, of course, is the one the actually failed ...
-# The chain is the series of certificates that issued the original one, back to the root certificate authority, along with the trust information about them.
-# The sslPolicyErrors tells us what went wrong: Was there no cert? Was the cert for the wrong domain? Was the root CA not trusted?
+#. The sender is usually going to be the WebRequest that was calling an https domain that failed validation.  
+#. The certificate, of course, is the one the actually failed ...
+#. The chain is the series of certificates that issued the original one, back to the root certificate authority, along with the trust information about them.
+#. The sslPolicyErrors tells us what went wrong: Was there no cert? Was the cert for the wrong domain? Was the root CA not trusted?
 
 So, what I've written is first a check for the three main SSL errors, and a way to pre-emptively ignore them once, or post-humously trust a certificate that failed the first time, as well as some better error messages (which have to be output using Console.Error.WriteLine rather than Write-Error because they might be running on a background thread).
 
-
-<!--
-
-This should turn into something like a cucumber spec...
-
-#. I want to be sure I'm not weakening validation for requests that I don't mean to affect.
-#. I want to be able to just trust a few specific certificate(s).
-#. I want to be able to just ignore problems for a single web request.
-
-except the ones that I specifically override security on.
-
--->
+.. 
+    This should turn into something like a cucumber spec...
+..
+    #. I want to be sure I'm not weakening validation for requests that I don't mean to affect.
+    #. I want to be able to just trust a few specific certificate(s).
+    #. I want to be able to just ignore problems for a single web request.
+       except the ones that I specifically override security on.
 
 .. _a lot of questions on StackOverflow: http://stackoverflow.com/search?q=self-signed+SSL+certificates+[csharp]+OR+[powershell]
 .. _Using Trusted Roots Respectfully: http://www.mono-project.com/UsingTrustedRootsRespectfully

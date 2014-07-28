@@ -1,4 +1,4 @@
-Add-Type -Path ".\TunableValidator.cs"
+Add-Type -Path "${PSScriptRoot}\TunableValidator.cs"
 
 # You need to set the validator so it can do anything...
 [Huddled.Net.TunableValidator]::SetValidator()
@@ -58,17 +58,17 @@ function Add-WindowsTrustedCertificate {
       [String]$FilePath,
 
       [Parameter(ParameterSetName = "Path")]
-      [SecureString]$Password = $((Get-Credential $FilePath).Password)
+      [SecureString]$Password = $((Get-Credential $FilePath).Password),
 
       [ValidateSet("CurrentUser","LocalMachine")]
       [String]$Root = "CurrentUser",
 
-      [String]$certStore = "My",
+      [String]$certStore = "My"
    )
 
    process {
       if($FilePath) {
-         if(-not Test-Path $FilePath) {
+         if(-not (Test-Path $FilePath)) {
             throw "Certificate File Not Found at '$FilePath'"
          }
          $Certificate = new-object System.Security.Cryptography.X509Certificates.X509Certificate2
@@ -107,7 +107,9 @@ function Add-SessionTrustedCertificate {
         [Parameter(ParameterSetName = "NextFailingCert", Mandatory = $True)]
         [Switch]$NextFailingCert,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(ParameterSetName = "Certificate", Mandatory = $true, Position = 1)]
+        [Parameter(ParameterSetName = "Path", Mandatory = $true, Position = 1)]
+        [Parameter(ParameterSetName = "CertHash", Mandatory = $true, Position = 1)]
         [Uri]$Domain
     )
     process {
@@ -117,7 +119,7 @@ function Add-SessionTrustedCertificate {
             [Huddled.Net.TunableValidator]::ApproveNextRequest($True)
         } else {
             if($FilePath) {
-                if(-not Test-Path $FilePath) {
+                if(-not (Test-Path $FilePath)) {
                     throw "Certificate File Not Found at '$FilePath'"
                 }
                 $Certificate = new-object System.Security.Cryptography.X509Certificates.X509Certificate2
@@ -138,6 +140,29 @@ function Add-SessionTrustedCertificate {
     }
 }
 
+
+function Get-SessionTrustedCertificate {
+    foreach($key in @([Huddled.Net.TunableValidator]::TrustedCerts.Keys)) {
+        New-Object PSObject -Property @{
+            "CertHash" = $key
+            "Domain" = [Huddled.Net.TunableValidator]::TrustedCerts[$key]
+        }
+    }
+}
+
+function Remove-SessionTrustedCertificate {
+    param(
+        [Parameter(ParameterSetName = "CertHash", Mandatory = $True, ValueFromPipelineByPropertyName = $True)]
+        [Alias("CertHash")]
+        [String]$Hash
+    )
+    process {
+        Write-Verbose "Removing $Hash"
+        if(![Huddled.Net.TunableValidator]::TrustedCerts.Remove($Hash)) {
+            Write-Error "Couldn't find $Hash in TrustedCerts"
+        }
+    }
+}
 
 function Disable-SSLChainValidation {
     #.Synopsis
