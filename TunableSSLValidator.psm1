@@ -431,8 +431,7 @@ function Invoke-RestMethod {
     #>
 }
 
-#JN: Commented this If check out because it was breaking the import-module
-#if(Get-Command Export-ODataEndpointProxy) {
+if(Get-Command Export-ODataEndpointProxy -ErrorAction SilentlyContinue) {
 
 function Export-ODataEndpointProxy {
     [CmdletBinding(DefaultParameterSetName='CDXML')]
@@ -500,7 +499,7 @@ function Export-ODataEndpointProxy {
     #>
 }
 
-#} JN: End of commented-out If check
+}
 
 # Whould add a module unload hook to remove the validation hook
 # [Net.ServicePointManager]::ServerCertificateValidationCallback = $null
