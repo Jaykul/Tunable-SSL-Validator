@@ -431,7 +431,8 @@ function Invoke-RestMethod {
     #>
 }
 
-if(Get-Command Export-ODataEndpointProxy) {
+
+#if(Get-Command Export-ODataEndpointProxy) {
 
 function Export-ODataEndpointProxy {
     [CmdletBinding(DefaultParameterSetName='CDXML')]
@@ -499,7 +500,7 @@ function Export-ODataEndpointProxy {
     #>
 }
 
-}
+#}
 
 # Whould add a module unload hook to remove the validation hook
 # [Net.ServicePointManager]::ServerCertificateValidationCallback = $null
