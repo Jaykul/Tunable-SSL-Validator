@@ -431,7 +431,7 @@ function Invoke-RestMethod {
     #>
 }
 
-if(Get-Command Export-ODataEndpointProxy) {
+if(Get-Command Export-ODataEndpointProxy -ErrorAction SilentlyContinue) {
 
 function Export-ODataEndpointProxy {
     [CmdletBinding(DefaultParameterSetName='CDXML')]
