@@ -294,7 +294,7 @@ function Invoke-WebRequest {
             $steppablePipeline.End()
             
             # If SessionVariable was specified, we need to set the it to the parents scope (otherwise the scope is limited to inside this function)
-            if ( $PSBoundParameters.ContainsKey("SessionVariable") ) { Set-Variable -Name "$SessionVariable" -Value $(Get-Variable -Name $SessionVariable -ValueOnly) -Scope 1 };
+            if ( $PSBoundParameters.ContainsKey("SessionVariable") ) { Set-Variable -Name "$SessionVariable" -Value $(Get-Variable -Name $SessionVariable -ValueOnly) -Scope 2 };
         } catch {
             throw
         }
@@ -423,7 +423,7 @@ function Invoke-RestMethod {
             $steppablePipeline.End()
             
             # If SessionVariable was specified, we need to set the it to the parents scope (otherwise the scope is limited to inside this function)
-            if ( $PSBoundParameters.ContainsKey("SessionVariable") ) { Set-Variable -Name "$SessionVariable" -Value $(Get-Variable -Name $SessionVariable -ValueOnly) -Scope 1 };
+            if ( $PSBoundParameters.ContainsKey("SessionVariable") ) { Set-Variable -Name "$SessionVariable" -Value $(Get-Variable -Name $SessionVariable -ValueOnly) -Scope 2 };
         } catch {
             throw
         }
