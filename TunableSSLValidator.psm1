@@ -3,7 +3,6 @@ Add-Type -Path "${PSScriptRoot}\TunableValidator.cs"
 # You need to set the validator so it can do anything...
 [Huddled.Net.TunableValidator]::SetValidator()
 
-
 function Request-WebCertificate {
     #.Synopsis
     #  Make an SSL web request and return the SSL certificate
@@ -139,7 +138,6 @@ function Add-SessionTrustedCertificate {
         }
     }
 }
-
 
 function Get-SessionTrustedCertificate {
     foreach($key in @([Huddled.Net.TunableValidator]::TrustedCerts.Keys)) {
@@ -294,6 +292,9 @@ function Invoke-WebRequest {
     end {
         try {
             $steppablePipeline.End()
+            
+            # If SessionVariable was specified, we need to set the it to the parents scope (otherwise the scope is limited to inside this function)
+            if ( $PSBoundParameters.ContainsKey("SessionVariable") ) { Set-Variable -Name "$SessionVariable" -Value $(Get-Variable -Name $SessionVariable -ValueOnly) -Scope 1 };
         } catch {
             throw
         }
@@ -303,7 +304,6 @@ function Invoke-WebRequest {
         .ForwardHelpCategory Cmdlet
     #>
 }
-
 
 function Invoke-RestMethod {
     [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=217034')]
@@ -421,6 +421,9 @@ function Invoke-RestMethod {
     end {
         try {
             $steppablePipeline.End()
+            
+            # If SessionVariable was specified, we need to set the it to the parents scope (otherwise the scope is limited to inside this function)
+            if ( $PSBoundParameters.ContainsKey("SessionVariable") ) { Set-Variable -Name "$SessionVariable" -Value $(Get-Variable -Name $SessionVariable -ValueOnly) -Scope 1 };
         } catch {
             throw
         }
