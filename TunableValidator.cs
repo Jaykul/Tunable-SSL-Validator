@@ -26,7 +26,7 @@ namespace Huddled.Net
           }
       }
 
-      public static void SetValidator(bool ignoreChainErrors = false, bool showConsoleStandardOutput = true, Hashtable trustedCerts = null)
+      public static void SetValidator(bool ignoreChainErrors = false, Hashtable trustedCerts = null, bool showConsoleStandardOutput = true)
       {
          IgnoreChainErrors = ignoreChainErrors;
          ShowConsoleStandardOutput = showConsoleStandardOutput;
