@@ -10,7 +10,7 @@ namespace Huddled.Net
    public class TunableValidator
    {
       public static bool IgnoreChainErrors { get; set; }
-      public static bool ShowConsoleStandardOutput { get; set; } 
+      public static bool ShowConsoleStandardOutput { get; set; }
       private static readonly Dictionary<string, string> Trusted = new Dictionary<string, string>();
       private static bool _allowNextCert;
       private static bool _addNextCert;
@@ -22,7 +22,7 @@ namespace Huddled.Net
       {
           if (ShowConsoleStandardOutput)
           {
-              Console.Out.Write("{1:yyy-MM-dd HH:mm:ss} {0}", msg, DateTime.Now);
+              Console.Out.Write("{1:yyy-MM-dd HH:mm:ss} {0}", msg, DateTime.Now, Environment.NewLine);
           }
       }
 
