@@ -10,15 +10,26 @@ namespace Huddled.Net
    public class TunableValidator
    {
       public static bool IgnoreChainErrors { get; set; }
+      public static bool ShowConsoleStandardOutput { get; set; } 
       private static readonly Dictionary<string, string> Trusted = new Dictionary<string, string>();
       private static bool _allowNextCert;
       private static bool _addNextCert;
       private static string _lasthash;
       private static string _lasthost;
 
-      public static void SetValidator(bool ignoreChainErrors = false, Hashtable trustedCerts = null)
+
+      public static void WriteOutToConsole(string msg)
+      {
+          if (ShowConsoleStandardOutput)
+          {
+              Console.Out.Write("{1:yyy-MM-dd HH:mm:ss} {0}", msg, DateTime.Now);
+          }
+      }
+
+      public static void SetValidator(bool ignoreChainErrors = false, bool showConsoleStandardOutput = true, Hashtable trustedCerts = null)
       {
          IgnoreChainErrors = ignoreChainErrors;
+         ShowConsoleStandardOutput = showConsoleStandardOutput;
 
          if (trustedCerts != null)
          {
@@ -33,7 +44,8 @@ namespace Huddled.Net
       public static void ApproveLastRequest()
       {
          Trusted.Add(_lasthash, _lasthost);
-         Console.WriteLine(string.Format("Added \"{0}\"=\"{1}\"", _lasthash, _lasthost));
+         //         Console.WriteLine(string.Format("Added \"{0}\"=\"{1}\"", _lasthash, _lasthost));
+         WriteOutToConsole("Added \"" + _lasthash + "\"=\"" + _lasthost + "\"");
       }
 
       public static void ApproveNextRequest(bool andTrustCert = false)
