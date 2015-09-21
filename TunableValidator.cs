@@ -22,7 +22,7 @@ namespace Huddled.Net
       {
           if (ShowConsoleStandardOutput)
           {
-              Console.Out.Write("{1:yyy-MM-dd HH:mm:ss} {0}", msg, DateTime.Now, Environment.NewLine);
+              Console.Out.Write("{1:yyy-MM-dd HH:mm:ss} {0}{2}", msg, DateTime.Now, Environment.NewLine);
           }
       }
 
@@ -65,7 +65,6 @@ namespace Huddled.Net
       {
          bool result = true;
          var request = sender as WebRequest;
-
 
          // If there's no remote certificate, we're always going to fail (why are we even in here?)
          if (SslPolicyErrors.RemoteCertificateNotAvailable ==
