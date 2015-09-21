@@ -164,6 +164,23 @@ function Remove-SessionTrustedCertificate {
     }
 }
 
+function Disable-ShowConsoleStandardOutput {
+    #.Synopsis
+    #  Disables methods from writing to the standard output stream
+    [Huddled.Net.TunableValidator]::ShowConsoleStandardOutput = $False
+}
+function Enable-ShowConsoleStandardOutput {
+    #.Synopsis
+    #  Enables methods to write to the standard output stream
+    [Huddled.Net.TunableValidator]::ShowConsoleStandardOutput = $True
+}
+function Get-ShowConsoleStandardOutput {
+    #.Synopsis
+    #  Retrieves the setting for whether methods to write to the standard output stream
+    [Huddled.Net.TunableValidator]::ShowConsoleStandardOutput
+}
+
+
 function Disable-SSLChainValidation {
     #.Synopsis
     #  Disables validation of the SSL certificate chain, essentially allowing self-signed certificates
@@ -174,6 +191,13 @@ function Enable-SSLChainValidation {
     #  Enables normal validation of the SSL certificate chain
     [Huddled.Net.TunableValidator]::IgnoreChainErrors = $False
 }
+
+function Get-IgnoreChainErrors {
+    #.Synopsis
+    #  Retrieves validation setting for the SSL certificate chain
+    [Huddled.Net.TunableValidator]::IgnoreChainErrors
+}
+
 
 function Invoke-WebRequest {
     [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=217035')]
@@ -501,5 +525,5 @@ function Export-ODataEndpointProxy {
 
 }
 
-# Whould add a module unload hook to remove the validation hook
+# Should add a module unload hook to remove the validation hook
 # [Net.ServicePointManager]::ServerCertificateValidationCallback = $null
