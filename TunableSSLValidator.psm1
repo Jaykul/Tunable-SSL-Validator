@@ -79,7 +79,7 @@ function Add-WindowsTrustedCertificate {
          }
       }
 
-      $store = new-object System.Security.Cryptography.X509Certificates.X509Store($certStore, $certRootStore)
+      $store = new-object System.Security.Cryptography.X509Certificates.X509Store($certStore, $Root)
       $store.open("MaxAllowed")
       $store.add($Certificate)
       $store.close()
