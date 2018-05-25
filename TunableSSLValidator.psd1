@@ -12,7 +12,7 @@
 ModuleToProcess = 'TunableSSLValidator.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1'
+ModuleVersion = '1.1.0'
 
 # ID used to uniquely identify this module
 GUID = 'defa3dd4-6862-4434-aaa7-8a7a7f4cae7b'
