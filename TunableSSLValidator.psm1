@@ -1,4 +1,6 @@
-Add-Type -Path "${PSScriptRoot}\TunableValidator.cs"
+if(-not "Huddled.Net.TunableValidator" -as [Type]) {
+    Add-Type -Path "${PSScriptRoot}\TunableValidator.cs"
+}
 
 # You need to set the validator so it can do anything...
 [Huddled.Net.TunableValidator]::SetValidator()
@@ -178,7 +180,6 @@ function Get-ShowConsoleStandardOutput {
     [Huddled.Net.TunableValidator]::ShowConsoleStandardOutput
 }
 
-
 function Disable-SSLChainValidation {
     #.Synopsis
     #  Disables validation of the SSL certificate chain, essentially allowing self-signed certificates
@@ -195,7 +196,6 @@ function Get-IgnoreChainErrors {
     #  Retrieves validation setting for the SSL certificate chain
     [Huddled.Net.TunableValidator]::IgnoreChainErrors
 }
-
 
 function Invoke-WebRequest {
     [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=217035')]
@@ -281,14 +281,15 @@ function Invoke-WebRequest {
 
         # Ignore SSL Errors for this request
         [switch]
-        ${Insecure}
+        [Alias("Insecure")]
+        ${SkipCertificateCheck}
     )
 
     begin {
-        if($Insecure) {
+        if($SkipCertificateCheck) {
             [Huddled.Net.TunableValidator]::ApproveNextRequest()
         }
-        $null = $PSBoundParameters.Remove("Insecure")
+        $null = $PSBoundParameters.Remove("SkipCertificateCheck")
 
         try {
             $outBuffer = $null
@@ -316,9 +317,11 @@ function Invoke-WebRequest {
     end {
         try {
             $steppablePipeline.End()
-            
-            # If SessionVariable was specified, we need to set the it to the parents scope (otherwise the scope is limited to inside this function)
-            if ( $PSBoundParameters.ContainsKey("SessionVariable") ) { Set-Variable -Name "$SessionVariable" -Value $(Get-Variable -Name $SessionVariable -ValueOnly) -Scope 2 };
+            if ($PSBoundParameters.ContainsKey("SessionVariable")) {
+                # because we're in module scope, the caller scope is two up
+                $session = Get-Variable -Name $SessionVariable -ValueOnly
+                Set-Variable -Name $SessionVariable -Value $session -Scope 2
+            }
         } catch {
             throw
         }
@@ -410,14 +413,15 @@ function Invoke-RestMethod {
 
         # Ignore SSL Errors for this request
         [switch]
-        ${Insecure}
+        [Alias("Insecure")]
+        ${SkipCertificateCheck}
     )
 
     begin {
-        if($Insecure) {
+        if($SkipCertificateCheck) {
             [Huddled.Net.TunableValidator]::ApproveNextRequest()
         }
-        $null = $PSBoundParameters.Remove("Insecure")
+        $null = $PSBoundParameters.Remove("SkipCertificateCheck")
 
         try {
             $outBuffer = $null
@@ -445,9 +449,11 @@ function Invoke-RestMethod {
     end {
         try {
             $steppablePipeline.End()
-            
-            # If SessionVariable was specified, we need to set the it to the parents scope (otherwise the scope is limited to inside this function)
-            if ( $PSBoundParameters.ContainsKey("SessionVariable") ) { Set-Variable -Name "$SessionVariable" -Value $(Get-Variable -Name $SessionVariable -ValueOnly) -Scope 2 };
+            if($PSBoundParameters.ContainsKey("SessionVariable")) {
+                # because we're in module scope, the caller scope is two up
+                $session = Get-Variable -Name $SessionVariable -ValueOnly
+                Set-Variable -Name $SessionVariable -Value $session -Scope 2
+            }
         } catch {
             throw
         }
@@ -481,14 +487,15 @@ function Export-ODataEndpointProxy {
         ${Credential},
 
         [switch]
-        ${Insecure}
+        [Alias("Insecure")]
+        ${SkipCertificateCheck}
     )
 
     begin {
-        if($Insecure) {
+        if($SkipCertificateCheck) {
             [Huddled.Net.TunableValidator]::ApproveNextRequest()
         }
-        $null = $PSBoundParameters.Remove("Insecure")
+        $null = $PSBoundParameters.Remove("SkipCertificateCheck")
 
         try {
             $outBuffer = $null

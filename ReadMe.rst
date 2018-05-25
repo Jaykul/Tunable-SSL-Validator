@@ -2,13 +2,24 @@
 .. slug: validating-self-signed-certificates-properly-from-powershell
 .. date: 2014-07-28 01:30:03 UTC-04:00
 .. tags: PowerShell, SSL, REST, WebRequest
-.. link: 
+.. link:
 .. description: A PowerShell module to allow weakening or circumventing SSL validation on web queries.
 .. type: text
 
-This module includes commands for importing certificates from files, loading them from the web server response of an http url, importing them to the Windows certificate store (to be trusted), and temporarily trusting them for a single PowerShell session.  It also includes proxy function command wrappers for ``Invoke-WebRequest`` and ``Invoke-RestMethod`` to add an ``-Insecure`` switch which allows single queries to ignore invalid SSL certificates.
+Tunable SSL Validator
+=====================
 
-**One caveat** is that the way that it works is based on implementing the ServerCertificateValidationCallback, and the *results of that callback are cached* by your system, so in testing I've found that if you allow a certain URL, that URL is going to be valid for several seconds until the cache expires, so if you make several repeated calls to the same URL, and only the first one is flagged ``-insecure``, they *may* all succeed. I can't remember what the documentation says about the timing or flushing the cache right now, but although it's obviously not a security issue, I am going to look for a way to flush that if it's possible.
+A wrapper module for the existing web cmdlets to allow more nuanced handling of TLS/SSL certificates.
+
+To Install from the PowerShell gallery:
+
+   Install-Module TunableSslValidator
+
+The primary function of the module is to include my TunableValidator class which implements a `RemoteCertificateValidationCallback`_ and registers it against the `ServicePointManager.ServerCertificateValidationCallback`_ property.  This method allows granular control over Certificate validation, so you can blanket accept self-signed certificates, or accept only certain ones, or whatever you need.  To facilitate that, there are commands for importing certificates from files, loading them from the response of an http request, and importing them to the Windows certificate store (to be trusted) or temporarily trusting them for a single PowerShell session.
+
+In addition to the slick there are also includes proxy function command wrappers for the built-in web commands ``Invoke-WebRequest``, ``Invoke-RestMethod`` and ``Export-ODataEndpointProxy`` to add a ``-SkipCertificateCheck`` switch (alias ``-Insecure``), which allows single queries to ignore invalid SSL certificates (similar to how it's _now_ implemented in PowerShell 6).
+
+**One caveat** is that calls to the ServerCertificateValidationCallback are cached by your system, so in testing I've found that if you allow a certain URL and certificate, that URL is going to be valid for several seconds until the cache expires, so if you make several repeated calls to the same URL, and only the first one is flagged ``-SkipCertificateCheck``, they *may* all succeed. I can't remember what the documentation says about the timing or flushing the cache right now, but although it's obviously not a security issue, I am going to look for a way to flush that if it's possible.
 
 Some Background
 ===============
@@ -32,7 +43,7 @@ So if you want to proactively avoid SSL errors, you have to set the ServerCertif
 
    $url = "https://csh.rit.edu"
    $web = New-Object Net.WebClient
-   [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true } 
+   [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
    $output = $web.DownloadString($url)
    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null
 
@@ -45,9 +56,9 @@ If you dig in a little bit, you'll find that the InnerException of the error was
    There is no Runspace available to run scripts in this thread. You can provide one in the DefaultRunspace property
    of the System.Management.Automation.Runspaces.Runspace type. The script block you attempted to invoke was:  $true
 
-Obviously this approach doesn't work at that point, and the Invoke-WebRequest cmdlet is not the only place which will call web APIs on background threads, so to make those cmdlets and APIs work, we need to write it in C# (and do so in a way that's flexible enough that we can control it from PowerShell). 
+Obviously this approach doesn't work at that point, and the Invoke-WebRequest cmdlet is not the only place which will call web APIs on background threads, so to make those cmdlets and APIs work, we need to write it in C# (and do so in a way that's flexible enough that we can control it from PowerShell).
 
-Additionally, simply returning true will disable all validation, and that's not really a safe practice -- it's certainly not what you want to do all of the time. If you're on .Net 4.5 or later, you can set the callback on the a raw HttpWebRequest and only affect that one request, but obviously that only works if you write your code at that low level, don't use the PowerShell cmdlets, and are on the latest version of .Net -- plus, you still have to write the logic that determines when that should happen.  
+Additionally, simply returning true will disable all validation, and that's not really a safe practice -- it's certainly not what you want to do all of the time. If you're on .Net 4.5 or later, you can set the callback on the a raw HttpWebRequest and only affect that one request, but obviously that only works if you write your code at that low level, don't use the PowerShell cmdlets, and are on the latest version of .Net -- plus, you still have to write the logic that determines when that should happen.
 
 The bottom line is that what we probably want is something like an ``insecure`` switch on the PowerShell cmdlets, so that we can make a specific request be insecure, and then when we were writing functions, we could just pass that parameter up to our functions.
 
@@ -63,14 +74,14 @@ Let's look at the callback and see the information we have to work with::
 
    bool TunableValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
 
-#. The sender is usually going to be the WebRequest that was calling an https domain that failed validation.  
+#. The sender is usually going to be the WebRequest that was calling an https domain that failed validation.
 #. The certificate, of course, is the one the actually failed ...
 #. The chain is the series of certificates that issued the original one, back to the root certificate authority, along with the trust information about them.
 #. The sslPolicyErrors tells us what went wrong: Was there no cert? Was the cert for the wrong domain? Was the root CA not trusted?
 
 So, what I've written is first a check for the three main SSL errors, and a way to pre-emptively ignore them once, or post-humously trust a certificate that failed the first time, as well as some better error messages (which have to be output using Console.Error.WriteLine rather than Write-Error because they might be running on a background thread).
 
-.. 
+..
     This should turn into something like a cucumber spec...
 ..
     #. I want to be sure I'm not weakening validation for requests that I don't mean to affect.
@@ -81,4 +92,6 @@ So, what I've written is first a check for the three main SSL errors, and a way 
 .. _a lot of questions on StackOverflow: http://stackoverflow.com/search?q=self-signed+SSL+certificates+[csharp]+OR+[powershell]
 .. _Using Trusted Roots Respectfully: http://www.mono-project.com/UsingTrustedRootsRespectfully
 .. _HttpWebRequest: http://msdn.microsoft.com/en-us/library/system.net.httpwebrequest.servercertificatevalidationcallback.aspx
+.. _ServicePointManager.ServerCertificateValidationCallback: https://msdn.microsoft.com/en-us/library/system.net.servicepointmanager.servercertificatevalidationcallback
 .. _computer science house at RIT: https://csh.rit.edu
+.. _RemoteCertificateValidationCallback: https://msdn.microsoft.com/en-us/library/system.net.security.remotecertificatevalidationcallback
