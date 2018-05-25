@@ -1,4 +1,4 @@
-if(-not "Huddled.Net.TunableValidator" -as [Type]) {
+if(-not ("Huddled.Net.TunableValidator" -as [Type])) {
     Add-Type -Path "${PSScriptRoot}\TunableValidator.cs"
 }
 
